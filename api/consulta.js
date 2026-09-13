@@ -21,11 +21,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // A chave fica SOMENTE no servidor
-    const apiKey = process.env.CPFHUB_API_KEY;
+    // Token da Magma DataHub fica somente no servidor
+    const apiToken = process.env.MAGMA_DATAHUB_TOKEN;
 
-    if (!apiKey) {
-      console.error('CPFHUB_API_KEY não configurada');
+    if (!apiToken) {
+      console.error('MAGMA_DATAHUB_TOKEN não configurado');
 
       return res.status(500).json({
         success: false,
@@ -33,14 +33,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // Consulta CPFHub
+    // Consulta Magma DataHub
     const response = await fetch(
-      `https://api.cpfhub.io/cpf/${rawCpf}`,
+      `https://magmadatahub.com/api.php?token=${encodeURIComponent(apiToken)}&cpf=${encodeURIComponent(rawCpf)}`,
       {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'x-api-key': apiKey
+          'Accept': 'application/json'
         },
         cache: 'no-store'
       }
@@ -48,33 +47,23 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Não vaza a API Key nem detalhes internos
+    console.log('Resposta Magma DataHub:', data);
+
     if (!response.ok) {
       return res.status(response.status).json({
         success: false,
-        error: data?.error || 'Não foi possível consultar o CPF'
+        error: data?.error || data?.message || 'Não foi possível consultar o CPF'
       });
     }
 
-    // Retorna somente o necessário
-    if (!data.success || !data.data) {
-      return res.status(404).json({
-        success: false,
-        error: 'CPF não encontrado'
-      });
-    }
-
+    // Retorna a resposta da API
     return res.status(200).json({
       success: true,
-      data: {
-        name: data.data.name || '',
-        birthDate: data.data.birthDate || '',
-        gender: data.data.gender || ''
-      }
+      data
     });
 
   } catch (error) {
-    console.error('Erro CPF:', error);
+    console.error('Erro CPF Magma DataHub:', error);
 
     return res.status(500).json({
       success: false,
