@@ -578,8 +578,8 @@
                 if (digits) valorPagamento = parseInt(digits, 10);
             }
 
-            // Preparar payload para o backend
-            const payload = {
+            // Preparar payload base
+            const basePayload = {
                 valor: valorPagamento,
                 nome: urlParams.get('nome') || '',
                 cpf: urlParams.get('cpf') || '',
@@ -588,30 +588,30 @@
             };
 
             // Tentar obter dados do usuário do localStorage se não vierem pela URL
-            if (!payload.nome || !payload.cpf) {
+            if (!basePayload.nome || !basePayload.cpf) {
                 try {
                     const dadosUsuario = JSON.parse(localStorage.getItem('dadosUsuario'));
                     if (dadosUsuario) {
                         console.log('[Pagamento] Dados do usuário encontrados no localStorage:', dadosUsuario);
                         
-                        if (!payload.nome && dadosUsuario.nome) {
-                            payload.nome = dadosUsuario.nome;
-                            console.log('[Pagamento] Nome obtido do localStorage:', payload.nome);
+                        if (!basePayload.nome && dadosUsuario.nome) {
+                            basePayload.nome = dadosUsuario.nome;
+                            console.log('[Pagamento] Nome obtido do localStorage:', basePayload.nome);
                         }
                         
-                        if (!payload.cpf && dadosUsuario.cpf) {
-                            payload.cpf = dadosUsuario.cpf;
-                            console.log('[Pagamento] CPF obtido do localStorage:', payload.cpf);
+                        if (!basePayload.cpf && dadosUsuario.cpf) {
+                            basePayload.cpf = dadosUsuario.cpf;
+                            console.log('[Pagamento] CPF obtido do localStorage:', basePayload.cpf);
                         }
                         
-                        if (!payload.email && dadosUsuario.email) {
-                            payload.email = dadosUsuario.email;
+                        if (!basePayload.email && dadosUsuario.email) {
+                            basePayload.email = dadosUsuario.email;
                         }
 
                         // Telefone: sem ele o Meta perde a match key "ph" no upsell.
-                        if (!payload.telefone && (dadosUsuario.telefone || dadosUsuario.phone)) {
-                            payload.telefone = dadosUsuario.telefone || dadosUsuario.phone;
-                            console.log('[Pagamento] Telefone obtido do localStorage:', payload.telefone);
+                        if (!basePayload.telefone && (dadosUsuario.telefone || dadosUsuario.phone)) {
+                            basePayload.telefone = dadosUsuario.telefone || dadosUsuario.phone;
+                            console.log('[Pagamento] Telefone obtido do localStorage:', basePayload.telefone);
                         }
                     }
                 } catch (error) {
@@ -620,34 +620,32 @@
             }
 
             // Remover prefixo +55 do telefone se existir
-            if (payload.telefone) {
-                payload.telefone = payload.telefone.replace(/^\+55/, '').replace(/\D/g, '');
-                console.log('[Pagamento] Telefone formatado:', payload.telefone);
+            if (basePayload.telefone) {
+                basePayload.telefone = basePayload.telefone.replace(/^\+55/, '').replace(/\D/g, '');
+                console.log('[Pagamento] Telefone formatado:', basePayload.telefone);
             }
 
-            // Adicionar parâmetros UTM
+            // Adicionar parâmetros UTM no basePayload
             const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'xcod', 'sck', 'src', 'utm_id', 'fbclid', 'gclid', 'ttclid'];
             utmFields.forEach(field => {
                 const value = urlParams.get(field);
-                if (value) payload[field] = value;
+                if (value) basePayload[field] = value;
             });
 
             // Identificadores Meta p/ CAPI server-side
             try {
                 const _gc = n => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]+)'); return m ? decodeURIComponent(m[1]) : ''; };
-                if (_gc('_fbp')) payload.fbp = _gc('_fbp');
-                if (_gc('_fbc')) payload.fbc = _gc('_fbc');
-                payload.event_source_url = window.location.href;
+                if (_gc('_fbp')) basePayload.fbp = _gc('_fbp');
+                if (_gc('_fbc')) basePayload.fbc = _gc('_fbc');
+                basePayload.event_source_url = window.location.href;
             } catch (e) {}
 
-            // Fallback robusto de UTMs via tracking.js (localStorage). Cobre o caso do
-            // pixel da UTMify falhar no load (erro 400) ou de refresh sem UTM na URL.
-            // Nao sobrescreve o que ja veio pela URL.
+            // Fallback robusto de UTMs via tracking.js
             try {
                 if (typeof window.gvdesenrolaMergeTracking === 'function') {
                     const trk = window.gvdesenrolaMergeTracking();
                     Object.keys(trk).forEach(k => {
-                        if (trk[k] && !payload[k]) payload[k] = trk[k];
+                        if (trk[k] && !basePayload[k]) basePayload[k] = trk[k];
                     });
                 }
             } catch (e) {}
@@ -655,19 +653,44 @@
             // Recuperar parâmetros do Utmify se disponível
             if (window.utmify) {
                 const utmifyParams = window.utmify.getParameters();
-                Object.assign(payload, utmifyParams);
+                Object.assign(basePayload, utmifyParams);
             }
 
-            console.log('[Pagamento] Enviando dados para backend:', payload);
+            // ==== MONTAR PAYLOAD EXATO PARA A BRAVOPAY ====
+            const bravoPayPayload = {
+                amount_cents: valorPagamento,
+                method: "pix",
+                customer: {
+                    name: basePayload.nome || "Cliente",
+                    email: basePayload.email || (basePayload.nome ? basePayload.nome.toLowerCase().replace(/\s+/g, '') + '@email.com' : 'cliente@email.com'),
+                    cpf: String(basePayload.cpf || '').replace(/\D/g, ''),
+                    phone: String(basePayload.telefone || '').replace(/\D/g, '')
+                },
+                description: "Taxa de Liberação",
+                external_reference: "chk_" + new Date().getTime(),
+                utm: {
+                    source: basePayload.utm_source || "",
+                    medium: basePayload.utm_medium || "",
+                    campaign: basePayload.utm_campaign || "",
+                    content: basePayload.utm_content || "",
+                    term: basePayload.utm_term || "",
+                    fbclid: basePayload.fbclid || basePayload.fbc || "",
+                    gclid: basePayload.gclid || "",
+                    ttclid: basePayload.ttclid || ""
+                }
+            };
+
+            console.log('[Pagamento] Enviando dados para backend (Vercel -> BravoPay):', bravoPayPayload);
 
             try {
-                const response = await fetch('../checkout/pagamento.php', {
+                // Chama a sua API da Vercel
+                const response = await fetch('/api/criar-pix', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(bravoPayPayload)
                 });
 
                 if (!response.ok) {
@@ -677,17 +700,20 @@
                 const data = await response.json();
                 console.log('[Pagamento] Resposta do backend:', data);
 
-                if (data.success) {
-                    document.getElementById('valorPagamento').textContent = formatarValor(data.valor);
-                    document.getElementById('pixCode').value = data.pixCopiaECola || data.pixCode;
-                    document.getElementById('qrCodeImage').src = data.qrCodeUrl || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                if (data.id && data.pix) {
+                    // Preencher UI com dados
+                    document.getElementById('valorPagamento').textContent = formatarValor(data.amount_cents);
+                    document.getElementById('pixCode').value = data.pix.copy_paste;
+                    
+                    // Gerar imagem do QR Code usando API pública confiável
+                    document.getElementById('qrCodeImage').src = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=1&data=' + encodeURIComponent(data.pix.copy_paste);
                     
                     document.getElementById('loadingPage').classList.add('hidden');
                     document.getElementById('mainPage').classList.remove('hidden');
 
-                    // Meta Pixel: InitiateCheckout — PIX gerado. event_id casa com CAPI.
+                    // Meta Pixel: InitiateCheckout — PIX gerado
                     try {
-                        if (window.metaTrack && data.token) {
+                        if (window.metaTrack && data.id) {
                             var _icv = parseInt(new URLSearchParams(window.location.search).get('valor') || '0', 10) || 0;
                             var _icn = new URLSearchParams(window.location.search).get('from_upsell') || '1';
                             window.metaTrack('InitiateCheckout', {
@@ -697,14 +723,14 @@
                                 content_ids: ['upsell' + _icn],
                                 content_name: 'Upsell ' + _icn,
                                 num_items: 1
-                            }, 'ic_' + data.token);
+                            }, 'ic_' + data.id);
                         }
                     } catch (e) { console.error('[Meta Pixel] erro InitiateCheckout:', e); }
 
-                    // Iniciar verificação de status
-                    verificarStatus(data.token);
+                    // Iniciar verificação de status passando o token da BravoPay
+                    verificarStatus(data.id);
                 } else {
-                    throw new Error(data.message || 'Erro ao gerar pagamento');
+                    throw new Error(data.error?.message || 'Erro ao gerar pagamento');
                 }
             } catch (error) {
                 console.error('[Pagamento] Erro:', error);
@@ -730,13 +756,13 @@
                     console.error('Erro ao obter dados do localStorage:', error);
                 }
                 
-                // Formatar dados no formato exato que utmify.php espera (formato PayHubr)
+                // Formato PayHubr / Utmify
                 const utmifyData = {
                     orderId: token,
                     status: "paid", // Status padronizado para Utmify
                     amount: parseInt(valorPagamento), // Valor em centavos
                     createdAt: new Date().toISOString(),
-                    paidAt: new Date().toISOString(), // Campo obrigatório para approvedDate
+                    paidAt: new Date().toISOString(), 
                     customer: {
                         name: dadosUsuario.nome || urlParams.get('nome') || "Cliente",
                         email: dadosUsuario.email || urlParams.get('email') || "cliente@email.com",
@@ -773,7 +799,6 @@
                 
                 console.log('📦 Dados formatados para Utmify:', utmifyData);
                 
-                // Enviar para utmify.php
                 const response = await fetch('../checkout/utmify.php', {
                     method: 'POST',
                     headers: {
@@ -792,27 +817,27 @@
 
         async function verificarStatus(token) {
             try {
-                console.log('🔍 Verificando status do pagamento:', token);
-                const response = await fetch(`../checkout/verificar.php?id=${encodeURIComponent(token)}`);
+                console.log('🔍 Verificando status do pagamento (Vercel):', token);
+                const response = await fetch(`/api/status-pix?id=${encodeURIComponent(token)}`);
                 const httpStatus = response.status;
                 console.log('📊 Status HTTP da resposta:', httpStatus);
 
                 if (!response.ok) {
                     console.error('❌ Erro HTTP ao verificar status:', httpStatus);
-                    setTimeout(() => verificarStatus(token), 2000);
+                    setTimeout(() => verificarStatus(token), 3000);
                     return;
                 }
 
                 const data = await response.json();
-                console.log('📦 Resposta completa do verificar.php:', data);
+                console.log('📦 Resposta completa da Vercel:', data);
 
-                if (data.success && data.status) {
-                    const status = String(data.status).toLowerCase();
+                if (data.status) {
+                    const status = String(data.status).toUpperCase(); // BravoPay usa PAID, PENDING
                     
-                    if (status === 'paid' || status === 'approved' || status === 'completed' || status === 'complete') {
+                    if (status === 'PAID') {
                         console.log('✅ Pagamento aprovado! Status:', status);
 
-                        // Meta Pixel: Purchase — pago confirmado. event_id casa 1:1 com o CAPI.
+                        // Meta Pixel: Purchase — pago confirmado.
                         try {
                             if (!window.__metaPurchaseFired && window.metaTrack && token) {
                                 window.__metaPurchaseFired = true;
@@ -829,7 +854,7 @@
                             }
                         } catch (e) { console.error('[Meta Pixel] erro Purchase:', e); }
 
-                        // Meta CAPI (server-side) — beacon com IP/UA/cookies reais do comprador.
+                        // Meta CAPI (server-side)
                         try {
                             const _gc = n => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]+)'); return m ? decodeURIComponent(m[1]) : ''; };
                             fetch('../checkout/meta-capi.php', {
@@ -858,33 +883,16 @@
                         let nextUpsell;
                         let nextValue;
                         switch(currentUpsell) {
-                            case '1':
-                                nextUpsell = 'upsell2';
-                                nextValue = '1970';
-                                break;
-                            case '2':
-                                nextUpsell = 'upsell3';
-                                nextValue = '1790';
-                                break;
-                            case '3':
-                                nextUpsell = 'upsell4';
-                                nextValue = '2490';
-                                break;
-                            case '4':
-                                nextUpsell = 'upsell5';
-                                nextValue = '3980';
-                                break;
-                            case '5':
-                                nextUpsell = 'upsell6';
-                                nextValue = '2490';
-                                break;
+                            case '1': nextUpsell = 'upsell2'; nextValue = '1970'; break;
+                            case '2': nextUpsell = 'upsell3'; nextValue = '1790'; break;
+                            case '3': nextUpsell = 'upsell4'; nextValue = '2490'; break;
+                            case '4': nextUpsell = 'upsell5'; nextValue = '3980'; break;
+                            case '5': nextUpsell = 'upsell6'; nextValue = '2490'; break;
                             case '6':
-                                // Fim do funil: nao ha upsell7. Encerra sem redirecionar.
                                 nextUpsell = null;
                                 nextValue = null;
                                 break;
                             default:
-                                // from_upsell desconhecido: encerra em vez de reiniciar o funil.
                                 nextUpsell = null;
                                 nextValue = null;
                         }
@@ -906,28 +914,26 @@
 
                         console.log('➡️ Próximo upsell:', nextUpsell, 'com valor:', nextValue);
 
-                        // Criar objeto com os dados da transação
+                        // Criar objeto com os dados da transação adaptado ao retorno da BravoPay
                         const transactionData = {
                             orderId: token,
                             status: "APPROVED",
                             amount: parseInt(urlParams.get('valor') || '2790'),
-                            createdAt: data.data?.created_at || new Date().toISOString(),
-                            approvedDate: data.data?.updated_at || new Date().toISOString(),
-                            customer: data.data?.customer || {
-                                name: data.data?.name || "Cliente",
-                                email: data.data?.email || "cliente@email.com",
-                                document: data.data?.cpf || "12345678909"
+                            createdAt: data.created_at || new Date().toISOString(),
+                            approvedDate: data.paid_at || new Date().toISOString(),
+                            customer: {
+                                name: data.customer?.name || "Cliente",
+                                email: data.customer?.email || "cliente@email.com",
+                                document: data.customer?.cpf || "12345678909"
                             },
                             fee: {
                                 fixedAmount: 0
                             }
                         };
 
-                        // Codificar os dados da transação em base64
                         const transactionBase64 = btoa(JSON.stringify(transactionData));
                         console.log('📝 Dados da transação:', transactionData);
 
-                        // Pegar parâmetros UTM da URL atual
                         const utmParams = {};
                         for (const [key, value] of urlParams.entries()) {
                             if (key.startsWith('utm_') || ['src', 'sck', 'xcod', 'fbclid', 'gclid', 'ttclid'].includes(key)) {
@@ -935,7 +941,6 @@
                             }
                         }
 
-                        // Construir nova query string com parâmetros atualizados
                         const newParams = new URLSearchParams({
                             ...utmParams,
                             from_upsell: String(parseInt(currentUpsell) + 1),
@@ -943,34 +948,33 @@
                             transaction: transactionBase64
                         });
 
-                        // Construir URL final
                         const nextUrl = `/${nextUpsell}/index.html?${newParams.toString()}`;
                         console.log('🔗 URL de redirecionamento:', nextUrl);
 
-                        // Redirecionar
                         console.log('🚀 Redirecionando...');
                         window.location.href = nextUrl;
-                    } else if (status === 'pending' || status === 'waiting_payment') {
-                        console.log('⏳ Pagamento ainda pendente. Verificando novamente em 5 segundos...');
-                        setTimeout(() => verificarStatus(token), 2000);
+
+                    } else if (status === 'PENDING') {
+                        console.log('⏳ Pagamento ainda pendente. Verificando novamente em 3 segundos...');
+                        setTimeout(() => verificarStatus(token), 3000);
                     } else {
-                        console.log('❓ Status desconhecido:', status);
-                        setTimeout(() => verificarStatus(token), 2000);
+                        console.log('❓ Status desconhecido/Expirado:', status);
+                        setTimeout(() => verificarStatus(token), 3000);
                     }
                 } else {
                     console.log('⚠️ Resposta sem status válido:', data);
-                    setTimeout(() => verificarStatus(token), 2000);
+                    setTimeout(() => verificarStatus(token), 3000);
                 }
             } catch (error) {
                 console.error('❌ Erro ao verificar status:', error);
-                console.log('🔄 Tentando novamente em 5 segundos...');
-                setTimeout(() => verificarStatus(token), 2000);
+                console.log('🔄 Tentando novamente em 3 segundos...');
+                setTimeout(() => verificarStatus(token), 3000);
             }
         }
 
         // Iniciar o processo quando a página carregar
         window.addEventListener('load', iniciarPagamento);
-    </script>
+</script>
 </body>
 </html>
 
