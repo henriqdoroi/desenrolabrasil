@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   try {
     const { cpf } = req.body || {};
 
-    // Normaliza CPF
+    // Remove pontos, traços e qualquer caractere não numérico
     const rawCpf = String(cpf || '').replace(/\D/g, '');
 
     // Validação básica
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Token da Magma DataHub fica somente no servidor
+    // Token da Magma fica somente no servidor
     const apiToken = process.env.MAGMA_DATAHUB_TOKEN;
 
     if (!apiToken) {
@@ -33,37 +33,58 @@ export default async function handler(req, res) {
       });
     }
 
-    // Consulta Magma DataHub
-    const response = await fetch(
-      `https://magmadatahub.com/api.php?token=${encodeURIComponent(apiToken)}&cpf=${encodeURIComponent(rawCpf)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
-        cache: 'no-store'
-      }
-    );
+    // Consulta a Magma DataHub
+    const apiUrl =
+      `https://magmadatahub.com/api.php` +
+      `?token=${encodeURIComponent(apiToken)}` +
+      `&cpf=${encodeURIComponent(rawCpf)}`;
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-store'
+    });
 
     const data = await response.json();
 
-    console.log('Resposta Magma DataHub:', data);
+    console.log('Resposta Magma:', data);
 
+    // Erro retornado pela Magma
     if (!response.ok) {
       return res.status(response.status).json({
         success: false,
-        error: data?.error || data?.message || 'Não foi possível consultar o CPF'
+        error:
+          data?.error ||
+          data?.message ||
+          'Não foi possível consultar o CPF'
       });
     }
 
-    // Retorna a resposta da API
+    // Verifica se a API realmente retornou os dados esperados
+    if (!data || !data.nome) {
+      return res.status(404).json({
+        success: false,
+        error: 'CPF não encontrado'
+      });
+    }
+
+    // Converte o formato da Magma para o formato
+    // que seu frontend antigo provavelmente já utiliza
     return res.status(200).json({
       success: true,
-      data
+      data: {
+        name: data.nome || '',
+        birthDate: data.nascimento || '',
+        gender: data.sexo || '',
+        motherName: data.nome_mae || '',
+        cpf: data.cpf || rawCpf
+      }
     });
 
   } catch (error) {
-    console.error('Erro CPF Magma DataHub:', error);
+    console.error('Erro CPF Magma:', error);
 
     return res.status(500).json({
       success: false,
