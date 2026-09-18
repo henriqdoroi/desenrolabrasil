@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Atendimento Online</title>
+<style>
+:root{
+  --pink:#ea0075;
+  --pink-hover:#d90069;
+  --pink-light:#fff1f8;
+  --bubble:#f8f8f8;
+  --border:#ddd9dc;
+  --text:#171717;
+  --muted:#777177;
+  --user:#efffe9;
+  --user-border:#dff0d7;
+  --radius:15px;
+  --max:540px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  background:#fff;
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{font:inherit}
+.chat{
+  width:min(100%,var(--max));
+  min-height:100vh;
+  margin:0 auto;
+  padding:
+    max(6px,env(safe-area-inset-top))
+    clamp(10px,3.5vw,18px)
+    calc(34px + env(safe-area-inset-bottom));
+}
+.demo-bar{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:24px;
+  margin-bottom:3px;
+  padding:3px 8px;
+  color:#8a8388;
+  font-size:10px;
+  line-height:1.25;
+  text-align:center;
+}
+.msg{
+  width:fit-content;
+  max-width:94%;
+  margin:8px 0;
+  padding:10px 14px;
+  background:var(--bubble);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  color:var(--text);
+  font-size:clamp(15px,3.9vw,16px);
+  line-height:1.42;
+  letter-spacing:-.01em;
+  box-shadow:0 1px 2px rgba(0,0,0,.025);
+}
+.msg.full{width:100%;max-width:100%}
+.msg.user{
+  margin-left:auto;
+  background:var(--user);
+  border-color:var(--user-border);
+  max-width:90%;
+}
+.msg strong{font-weight:750}
+.msg em{font-style:italic}
+.media{
+  width:100%;
+  max-width:100%;
+  padding:7px;
+  overflow:hidden;
+}
+.fade-in{animation:messageIn .32s cubic-bezier(.2,.8,.2,1) both}
+@keyframes messageIn{
+  from{opacity:0;transform:translateY(8px) scale(.992)}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- cards/imagens ---------- */
+.poster{
+  position:relative;
+  width:100%;
+  aspect-ratio:1.43/1;
+  overflow:hidden;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 82% 28%,rgba(90,164,54,.96) 0 18%,transparent 18.5%),
+    linear-gradient(135deg,#d9086b,#ee187f 55%,#da006c);
+}
+.poster:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 45%);
+}
+.poster:after{
+  content:"";
+  position:absolute;
+  right:5%;
+  bottom:-14%;
+  width:39%;
+  aspect-ratio:1;
+  border-radius:50% 50% 8% 8%;
+  background:linear-gradient(145deg,#202020,#4a4a4a);
+  transform:rotate(-5deg);
+  opacity:.94;
+}
+.poster-text{
+  position:relative;
+  z-index:2;
+  width:60%;
+  color:#fff;
+  text-align:center;
+}
+.poster-brand{
+  font-size:clamp(20px,5.8vw,30px);
+  font-weight:850;
+  letter-spacing:-1.2px;
+}
+.poster-title{
+  margin-top:8px;
+  font-size:clamp(25px,7vw,38px);
+  font-weight:900;
+  line-height:.94;
+  letter-spacing:-1.5px;
+}
+.poster-pill{
+  width:80%;
+  margin:14px auto 0;
+  padding:8px 5px;
+  border-radius:11px;
+  background:#008fd6;
+  color:#fff;
+  font-size:clamp(12px,3.6vw,17px);
+  font-weight:850;
+  line-height:.98;
+  box-shadow:0 4px 11px rgba(0,0,0,.17);
+}
+
+.video-card{
+  position:relative;
+  width:100%;
+  aspect-ratio:9/11;
+  overflow:hidden;
+  border-radius:10px;
+  background:linear-gradient(145deg,#ff45a2,#f10078);
+}
+.video-card:before{
+  content:"";
+  position:absolute;
+  left:12%;
+  bottom:-12%;
+  width:76%;
+  height:90%;
+  border-radius:48% 48% 12% 12%;
+  background:linear-gradient(180deg,#282828,#0d0d0d);
+}
+.video-card:after{
+  content:"";
+  position:absolute;
+  left:36%;
+  top:12%;
+  width:28%;
+  aspect-ratio:1;
+  border-radius:50%;
+  background:linear-gradient(145deg,#8b5b43,#d49a75);
+}
+.video-logo{
+  position:absolute;
+  z-index:3;
+  top:13px;
+  left:15px;
+  color:#fff;
+  font-size:18px;
+  font-weight:750;
+}
+.play{
+  position:absolute;
+  z-index:5;
+  top:50%;
+  left:50%;
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  display:grid;
+  place-items:center;
+  background:rgba(236,0,119,.96);
+  box-shadow:0 9px 24px rgba(0,0,0,.18);
+}
+.play:after{
+  content:"";
+  margin-left:6px;
+  width:0;height:0;
+  border-top:15px solid transparent;
+  border-bottom:15px solid transparent;
+  border-left:23px solid #fff;
+}
+.video-caption{
+  position:absolute;
+  z-index:6;
+  left:17px;
+  right:17px;
+  bottom:17px;
+  padding:10px 8px;
+  border-radius:6px;
+  background:var(--pink);
+  color:#fff;
+  text-align:center;
+  font-size:14px;
+  font-weight:800;
+}
+
+/* ---------- empresas ---------- */
+.logos{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px 7px;
+  align-items:center;
+  min-height:300px;
+  padding:18px 12px;
+  border-radius:9px;
+  background:#fff;
+}
+.logo{
+  overflow:hidden;
+  text-align:center;
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:-.45px;
+  opacity:.78;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.logo:nth-child(3n){font-size:13px}
+.logo:nth-child(4n){font-size:18px}
+
+/* ---------- áudio: SEM borda/cartão externo ---------- */
+.msg.audio-message{
+  width:100%;
+  max-width:100%;
+  padding:0;
+  margin:12px 0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+.audio{
+  position:relative;
+  width:100%;
+  height:70px;
+  padding:9px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:0;
+  border-radius:11px;
+  background:linear-gradient(90deg,#ed0078,#ed0a83);
+  color:#fff;
+  box-shadow:0 4px 13px rgba(235,0,119,.12);
+}
+.audio-play{
+  flex:0 0 42px;
+  width:42px;height:42px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  color:var(--pink);
+  cursor:pointer;
+  font-size:17px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+.wave{
+  flex:1;
+  min-width:0;
+  height:35px;
+  display:flex;
+  align-items:center;
+  gap:2px;
+  overflow:hidden;
+}
+.wave i{
+  flex:0 0 2px;
+  width:2px;
+  border-radius:3px;
+  background:#fff;
+  opacity:.92;
+  transform-origin:center;
+}
+.audio.playing .wave i{
+  animation:wave .48s ease-in-out infinite alternate;
+}
+.audio.playing .wave i:nth-child(2n){animation-delay:.08s}
+.audio.playing .wave i:nth-child(3n){animation-delay:.15s}
+@keyframes wave{
+  from{transform:scaleY(.34)}
+  to{transform:scaleY(1)}
+}
+.audio-time{
+  flex:0 0 38px;
+  min-width:38px;
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  text-align:right;
+}
+
+/* ---------- digitando ---------- */
+.typing{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-width:58px;
+  padding:11px 15px;
+}
+.dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:#8d888b;
+  animation:dot 1s infinite ease-in-out;
+}
+.dot:nth-child(2){animation-delay:.13s}
+.dot:nth-child(3){animation-delay:.26s}
+@keyframes dot{
+  0%,60%,100%{opacity:.45;transform:translateY(0)}
+  30%{opacity:1;transform:translateY(-4px)}
+}
+
+/* ---------- botões ---------- */
+.btn{
+  width:100%;
+  min-height:48px;
+  margin:6px 0;
+  padding:13px 16px;
+  border:0;
+  border-radius:24px;
+  background:var(--pink);
+  color:#fff;
+  font-size:clamp(15px,4vw,16px);
+  font-weight:800;
+  line-height:1.2;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(235,0,119,.13);
+  transition:transform .12s ease,background .15s ease,box-shadow .15s ease;
+}
+.btn:hover{
+  background:var(--pink-hover);
+  box-shadow:0 6px 14px rgba(235,0,119,.17);
+}
+.btn:active{transform:scale(.985)}
+.btn.secondary{
+  background:#fff;
+  color:var(--pink);
+  border:1px solid #efb4d3;
+  box-shadow:none;
+}
+.hidden{display:none!important}
+
+/* ---------- score ---------- */
+.score{
+  padding:17px;
+  border-radius:9px;
+  background:#fff;
+}
+.score-label{font-size:11px;color:#888}
+.score-title{margin-top:8px;font-size:16px;font-weight:700}
+.gauge{
+  position:relative;
+  width:min(230px,80%);
+  height:95px;
+  margin:18px auto 0;
+  border:10px solid #e8e8e8;
+  border-bottom:0;
+  border-radius:230px 230px 0 0;
+}
+.gauge:after{
+  content:"";
+  position:absolute;
+  left:-10px;top:-10px;
+  width:87px;height:10px;
+  border-radius:10px;
+  background:#ff5d50;
+  transform:rotate(-35deg);
+  transform-origin:10px 5px;
+}
+.gauge-number{
+  position:absolute;
+  left:50%;top:28px;
+  transform:translateX(-50%);
+  font-size:25px;
+  font-weight:800;
+}
+
+/* ---------- telas grandes ---------- */
+@media (min-width:700px){
+  body{background:#f4f4f4}
+  .chat{
+    min-height:100vh;
+    background:#fff;
+    box-shadow:0 0 28px rgba(0,0,0,.06);
+  }
+}
+@media (max-width:360px){
+  .chat{padding-left:9px;padding-right:9px}
+  .msg{padding-left:12px;padding-right:12px}
+  .audio{gap:7px;padding-left:8px;padding-right:8px}
+  .audio-play{flex-basis:38px;width:38px;height:38px}
+  .audio-time{flex-basis:34px;min-width:34px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="chat" id="chat">
+  <div class="demo-bar">ATENDIMENTO DEMONSTRATIVO • nenhum dado é enviado a serviços externos</div>
+
+  <!-- O fluxo é montado progressivamente pelo JavaScript -->
+  <div id="messages"></div>
+</main>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO
+   ============================================================ */
+const CHECKOUT_URL = ""; // coloque aqui um checkout legítimo, se houver
+
+const params = new URLSearchParams(location.search);
+const name = params.get("nome") || "Visitante";
+const birth = params.get("nasc") || "Não informado";
+const gender = params.get("genero") || "";
+const cpfRaw = (params.get("cpf") || "").replace(/\D/g,"");
+
+function maskCpf(v){
+  if(v.length !== 11) return "***.***.***-**";
+  return v.slice(0,3)+".***.***-"+v.slice(-2);
+}
+const cpf = maskCpf(cpfRaw);
+
+const messages = document.getElementById("messages");
+
+function el(html, cls=""){
+  const d=document.createElement("div");
+  d.innerHTML=html.trim();
+  const node=d.firstElementChild;
+  if(cls) node.classList.add(...cls.split(" "));
+  return node;
+}
+function scrollBottom(){
+  requestAnimationFrame(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:"smooth"}));
+}
+function add(node, delay=0){
+  return new Promise(resolve=>{
+    setTimeout(()=>{
+      node.classList.add("fade-in");
+      messages.appendChild(node);
+      scrollBottom();
+      resolve(node);
+    },delay);
+  });
+}
+function typing(delay=3000){
+  return new Promise(resolve=>{
+    const t=el(`<div class="msg typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`);
+    t.classList.add("fade-in");
+    messages.appendChild(t);
+    scrollBottom();
+    setTimeout(()=>{t.remove();resolve()},delay);
+  });
+}
+function button(text,id){
+  return el(`<button class="btn" id="${id}">${text}</button>`);
+}
+function wait(ms){return new Promise(r=>setTimeout(r,ms))}
+
+function poster(text="ATENDIMENTO ONLINE",sub="Consulta demonstrativa"){
+  return el(`
+    <div class="msg media">
+      <div class="poster">
+        <div class="poster-text">
+          <div class="poster-brand">CONSULTA FÁCIL</div>
+          <div class="poster-title">${text}</div>
+          <div class="poster-pill">${sub}</div>
+        </div>
+      </div>
+    </div>`);
+}
+function video(){
+  return el(`
+    <div class="msg media">
+      <div class="video-card">
+        <div class="video-logo">atendimento</div>
+        <div class="play"></div>
+        <div class="video-caption">canal de atendimento demonstrativo</div>
+      </div>
+    </div>`);
+}
+function audio(duration=18){
+  const bars=Array.from({length:46},(_,i)=>{
+    const h=8+Math.abs(Math.sin(i*1.71))*22;
+    return `<i style="height:${h}px"></i>`;
+  }).join("");
+  const box=el(`
+    <div class="msg audio-message">
+      <div class="audio" data-duration="${duration}">
+        <button class="audio-play" aria-label="Reproduzir áudio">▶</button>
+        <div class="wave">${bars}</div>
+        <div class="audio-time">00:00</div>
+      </div>
+    </div>`);
+  setupAudio(box.querySelector(".audio"));
+  return box;
+}
+function logos(){
+  const items=["VIVO","BRADESCO","CLARO","NUBANK","SANTANDER","ITAÚ","IPANEMA","RIACHUELO","AVON","HAVAN","SKY","RENNER","TIM","INTER","SAFRA"];
+  return el(`
+    <div class="msg media">
+      <div class="logos">${items.map(x=>`<div class="logo">${x}</div>`).join("")}</div>
+    </div>`);
+}
+function score(){
+  return el(`
+    <div class="msg media">
+      <div class="score">
+        <div class="score-label">Consulta Fácil • demonstração</div>
+        <div class="score-title">Resultado de exemplo</div>
+        <div class="gauge"><span class="gauge-number">365</span></div>
+      </div>
+    </div>`);
+}
+
+function setupAudio(audioEl){
+  const btn=audioEl.querySelector(".audio-play");
+  const time=audioEl.querySelector(".audio-time");
+  const duration=Number(audioEl.dataset.duration)||18;
+  let interval=null, current=0, started=false;
+
+  btn.addEventListener("click",()=>{
+    if(started) return;
+    started=true;
+    audioEl.classList.add("playing");
+    btn.textContent="Ⅱ";
+
+    interval=setInterval(()=>{
+      current++;
+      const left=Math.max(0,duration-current);
+      time.textContent=`00:${String(current).padStart(2,"0")}`;
+
+      /* Regra pedida:
+         o próximo conteúdo pode ser liberado 5 segundos antes do áudio terminar. */
+      if(current===duration-5){
+        const event=new CustomEvent("audio-five-before-end",{detail:{audio:audioEl}});
+        document.dispatchEvent(event);
+      }
+
+      if(current>=duration){
+        clearInterval(interval);
+        audioEl.classList.remove("playing");
+        btn.textContent="↻";
+      }
+    },1000);
+  });
+
+  /* Auto-inicia para o fluxo parecer uma conversa real */
+  setTimeout(()=>btn.click(),450);
+}
+
+/* ============================================================
+   FLUXO
+   Cada mensagem do atendente espera ~3s.
+   Áudios possuem ~18s e liberam a próxima etapa 5s antes do fim.
+   ============================================================ */
+async function start(){
+
+  await add(poster("ATENDIMENTO ONLINE","canal oficial da demonstração"));
+  await typing(3000);
+  await add(el(`<div class="msg">Olá <strong>${escapeHTML(name)}</strong>, este é um canal demonstrativo de atendimento. Seus dados permanecem nesta página. 🔐</div>`));
+  await typing(3000);
+  await add(el(`<div class="msg">Aguarde em alguns instantes, um de nossos atendentes entrar na conversa...</div>`));
+  await typing(3000);
+  await add(el(`<div class="msg"><strong><em>(Atendente Fernanda entrou na conversa.) 💬</em></strong></div>`));
+  await typing(3000);
+  await add(video());
+
+  await typing(3000);
+  const confirm=el(`
+    <div class="msg">
+      <strong>Para continuar, confirme seus dados:</strong><br><br>
+      <strong><em>Nome:</em></strong><br>${escapeHTML(name)}<br>
+      <strong><em>CPF:</em></strong><br>${cpf}<br>
+      <strong><em>Data de Nascimento:</em></strong><br>${escapeHTML(birth)}
+    </div>`);
+  await add(confirm);
+
+  const yes=button("Sim, está correto.","confirmYes");
+  const no=button("Não sou eu","confirmNo");
+  messages.append(yes,no);
+  scrollBottom();
+
+  await new Promise(resolve=>{
+    yes.onclick=async()=>{
+      yes.remove();no.remove();
+      await add(el(`<div class="msg user">Sim, está correto.</div>`));
+      resolve();
+    };
+    no.onclick=()=>{
+      alert("Demonstração encerrada.");
+    };
+  });
+
+  await typing(3000);
+  await add(el(`<div class="msg">Obrigado!</div>`));
+  await typing(3000);
+  await add(el(`<div class="msg"><em>Aguarde... Entrando em sua conta demonstrativa.</em></div>`));
+  await typing(3000);
+  await add(el(`<div class="msg"><strong><em>Login efetuado com sucesso!</em></strong></div>`));
+  await typing(3000);
+  await add(el(`<div class="msg"><strong>${escapeHTML(name)}</strong><br>Seja bem-vindo(a) à sua conta demonstrativa.</div>`));
+  await typing(3000);
+  await add(el(`<div class="msg">Confira abaixo algumas informações de exemplo:</div>`));
+  await typing(3000);
+  await add(logos());
+
+  const c1=button("CONTINUAR","continue1");
+  messages.append(c1);scrollBottom();
+  await new Promise(resolve=>c1.onclick=async()=>{
+    c1.remove();
+    await add(el(`<div class="msg user">CONTINUAR</div>`));
+    resolve();
+  });
+
+  await typing(3000);
+  const a1=audio(18);
+  await add(a1);
+
+  /* Só libera o próximo texto quando chegar a 5s do final */
+  await new Promise(resolve=>{
+    document.addEventListener("audio-five-before-end",function handler(e){
+      if(e.detail.audio===a1.querySelector(".audio")){
+        document.removeEventListener("audio-five-before-end",handler);
+        resolve();
+      }
+    });
+  });
+
+  await typing(3000);
+  await add(el(`<div class="msg">Você quer continuar a consulta demonstrativa?</div>`));
+  const search=button("SIM! QUERO CONTINUAR","search");
+  messages.append(search);scrollBottom();
+
+  await new Promise(resolve=>search.onclick=async()=>{
+    search.remove();
+    await add(el(`<div class="msg user">SIM! QUERO CONTINUAR</div>`));
+    resolve();
+  });
+
+  await typing(3000);
+  await add(el(`<div class="msg"><strong><em>Por favor, aguarde enquanto o sistema verifica as informações...</em></strong></div>`));
+  await typing(3000);
+  await add(el(`<div class="msg"><strong><em>Consultando...</em></strong></div>`));
+  await wait(1200);
+  await add(poster("CONSULTA CONCLUÍDA","resultado demonstrativo"));
+  await typing(3000);
+  await add(el(`<div class="msg"><strong><em>Análise concluída!</em></strong></div>`));
+  await typing(3000);
+  await add(el(`<div class="msg">Esta é uma <strong>simulação</strong>. Nenhuma dívida, score, contrato ou pagamento real foi consultado.</div>`));
+  await typing(3000);
+  await add(score());
+  await typing(3000);
+  await add(el(`<div class="msg">Você deseja continuar para visualizar as opções disponíveis na demonstração?</div>`));
+
+  const agreement=button("BUSCAR OPÇÃO","agreement");
+  messages.append(agreement);scrollBottom();
+  await new Promise(resolve=>agreement.onclick=async()=>{
+    agreement.remove();
+    await add(el(`<div class="msg user">BUSCAR OPÇÃO</div>`));
+    resolve();
+  });
+
+  await typing(3000);
+  await add(el(`<div class="msg"><em>Por favor, aguarde enquanto preparamos a demonstração...</em></div>`));
+  await typing(3000);
+  await add(el(`<div class="msg"><strong><em>Opção encontrada!</em></strong></div>`));
+  await typing(3000);
+  await add(el(`
+    <div class="msg">
+      <strong>1 (uma) opção demonstrativa foi encontrada para:</strong><br><br>
+      ${escapeHTML(name)}<br><br>
+      CPF: ${cpf}
+    </div>`));
+
+  const view=button("VER OPÇÃO","view");
+  messages.append(view);scrollBottom();
+  await new Promise(resolve=>view.onclick=async()=>{
+    view.remove();
+    await add(el(`<div class="msg user">VER OPÇÃO</div>`));
+    resolve();
+  });
+
+  await typing(3000);
+  const a2=audio(18);
+  await add(a2);
+
+  await new Promise(resolve=>{
+    document.addEventListener("audio-five-before-end",function handler(e){
+      if(e.detail.audio===a2.querySelector(".audio")){
+        document.removeEventListener("audio-five-before-end",handler);
+        resolve();
+      }
+    });
+  });
+
+  await typing(3000);
+  await add(el(`<div class="msg">Parabéns <strong>${escapeHTML(name)}</strong>!</div>`));
+  await typing(3000);
+  await add(el(`<div class="msg">Você chegou ao final da demonstração. Nenhuma cobrança será realizada nesta página.</div>`));
+  await typing(3000);
+  await add(el(`<div class="msg"><strong>Próximo passo</strong><br>Conecte aqui o seu checkout ou formulário legítimo.</div>`));
+
+  const pay=button("CONTINUAR PARA O CHECKOUT","pay");
+  messages.append(pay);scrollBottom();
+  pay.onclick=()=>{
+    if(CHECKOUT_URL) location.href=CHECKOUT_URL;
+    else alert("Configure CHECKOUT_URL no código para usar um checkout legítimo.");
+  };
+}
+
+function escapeHTML(value){
+  return String(value).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+start();
+</script>
+</body>
+</html>
