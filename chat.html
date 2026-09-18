@@ -597,13 +597,13 @@ function setupAudio(audioEl){
    ============================================================ */
 async function start(){
 
-  await add(poster("ATENDIMENTO ONLINE","canal oficial da demonstração"));
+  await add(poster("ATENDIMENTO ONLINE","canal demonstrativo"));
   await typing(3000);
-  await add(el(`<div class="msg">Olá <strong>${escapeHTML(name)}</strong>, este é um canal demonstrativo de atendimento. Seus dados permanecem nesta página. 🔐</div>`));
+  await add(el(`<div class="msg">Olá <strong>${escapeHTML(name)}</strong>, este é um canal demonstrativo de atendimento. 🔐</div>`));
   await typing(3000);
-  await add(el(`<div class="msg">Aguarde em alguns instantes, um de nossos atendentes entrar na conversa...</div>`));
+  await add(el(`<div class="msg">Aguarde em alguns instantes, um atendente entrará na conversa...</div>`));
   await typing(3000);
-  await add(el(`<div class="msg"><strong><em>(Atendente Fernanda entrou na conversa.) 💬</em></strong></div>`));
+  await add(el(`<div class="msg"><strong><em>(Atendente entrou na conversa.) 💬</em></strong></div>`));
   await typing(3000);
   await add(video());
 
@@ -617,19 +617,13 @@ async function start(){
     </div>`);
   await add(confirm);
 
-  const yes=button("Sim, está correto.","confirmYes");
-  const no=button("Não sou eu","confirmNo");
-  messages.append(yes,no);
+  const yes=button("Sim, está correto.","confirmYes"); messages.append(yes);
   scrollBottom();
 
   await new Promise(resolve=>{
-    yes.onclick=async()=>{
-      yes.remove();no.remove();
+    yes.onclick=async()=>{ yes.remove();
       await add(el(`<div class="msg user">Sim, está correto.</div>`));
       resolve();
-    };
-    no.onclick=()=>{
-      alert("Demonstração encerrada.");
     };
   });
 
@@ -638,9 +632,9 @@ async function start(){
   await typing(3000);
   await add(el(`<div class="msg"><em>Aguarde... Entrando em sua conta demonstrativa.</em></div>`));
   await typing(3000);
-  await add(el(`<div class="msg"><strong><em>Login efetuado com sucesso!</em></strong></div>`));
+  await add(el(`<div class="msg"><strong><em>Acesso demonstrativo realizado!</em></strong></div>`));
   await typing(3000);
-  await add(el(`<div class="msg"><strong>${escapeHTML(name)}</strong><br>Seja bem-vindo(a) à sua conta demonstrativa.</div>`));
+  await add(el(`<div class="msg"><strong>${escapeHTML(name)}</strong><br>Seja bem-vindo(a) ao atendimento demonstrativo.</div>`));
   await typing(3000);
   await add(el(`<div class="msg">Confira abaixo algumas informações de exemplo:</div>`));
   await typing(3000);
@@ -680,13 +674,13 @@ async function start(){
   });
 
   await typing(3000);
-  await add(el(`<div class="msg"><strong><em>Por favor, aguarde enquanto o sistema verifica as informações...</em></strong></div>`));
+  await add(el(`<div class="msg"><strong><em>Por favor, aguarde enquanto a demonstração prepara as informações...</em></strong></div>`));
   await typing(3000);
   await add(el(`<div class="msg"><strong><em>Consultando...</em></strong></div>`));
   await wait(1200);
   await add(poster("CONSULTA CONCLUÍDA","resultado demonstrativo"));
   await typing(3000);
-  await add(el(`<div class="msg"><strong><em>Análise concluída!</em></strong></div>`));
+  await add(el(`<div class="msg"><strong><em>Demonstração concluída!</em></strong></div>`));
   await typing(3000);
   await add(el(`<div class="msg">Esta é uma <strong>simulação</strong>. Nenhuma dívida, score, contrato ou pagamento real foi consultado.</div>`));
   await typing(3000);
@@ -736,7 +730,7 @@ async function start(){
   });
 
   await typing(3000);
-  await add(el(`<div class="msg">Parabéns <strong>${escapeHTML(name)}</strong>!</div>`));
+  await add(el(`<div class="msg">Resultado da demonstração para <strong>${escapeHTML(name)}</strong>!</div>`));
   await typing(3000);
   await add(el(`<div class="msg">Você chegou ao final da demonstração. Nenhuma cobrança será realizada nesta página.</div>`));
   await typing(3000);
